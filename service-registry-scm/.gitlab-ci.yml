@@ -1,0 +1,46 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
+
+stages:
+  - build
+  - deploy
+
+variables:
+  TOMCAT_HOME: "D:\\Common-configuration"
+  WAR_NAME: "service-registry.war"
+
+build-war:
+  stage: build
+  tags:
+    - tomcat
+  script:
+    - echo Building WAR
+    - gradlew.bat clean build -x test
+  artifacts:
+    paths:
+      - build/libs/*.war
+
+deploy-to-tomcat:
+  stage: deploy
+  tags:
+    - tomcat
+  needs:
+    - build-war
+  script:
+    - echo Stopping Tomcat
+    - '"%TOMCAT_HOME%\\bin\\shutdown.bat"'
+    - timeout /t 10
+
+    - echo Removing old deployment
+    - rmdir /S /Q "%TOMCAT_HOME%\\webapps\\service-registry" || exit 0
+    - del /Q "%TOMCAT_HOME%\\webapps\\%WAR_NAME%" || exit 0
+
+    - echo Deploying WAR
+    - copy /Y build\\libs\\*.war "%TOMCAT_HOME%\\webapps\\%WAR_NAME%"
+
+    - echo Starting Tomcat
+    - '"%TOMCAT_HOME%\\bin\\startup.bat"'
