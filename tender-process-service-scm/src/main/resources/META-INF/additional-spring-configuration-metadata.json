@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "activiti.database-schema",
+    "type": "java.lang.String",
+    "description": "A description for 'activiti.database-schema'"
+  },
+  {
+    "name": "otel.exporter.otlp.endpoint",
+    "type": "java.lang.String",
+    "description": "A description for 'otel.exporter.otlp.endpoint'"
+  },
+  {
+    "name": "python.api.base.url",
+    "type": "java.lang.String",
+    "description": "A description for 'python.api.base.url'"
+  }
+]}

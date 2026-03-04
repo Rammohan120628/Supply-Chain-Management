@@ -1,0 +1,147 @@
+plugins {
+	id 'java'
+	id 'war'
+	id 'jacoco'
+	id 'org.springframework.boot' version '3.3.1'
+	id 'io.spring.dependency-management' version '1.1.5'
+	id "org.sonarqube" version "4.4.1.3373"
+}
+ 
+group = 'com.esfita'
+version = '0.0.1-SNAPSHOT'
+ 
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+ 
+repositories {
+	mavenCentral()
+}
+ 
+war {
+    enabled = true
+    archiveBaseName.set('tender-process-service-scm') // Base name for the WAR file
+    archiveFileName.set('tender-process-service-scm.war') // Explicitly set the WAR file name
+}
+ 
+ext {
+	set('springCloudVersion', "2023.0.2")
+}
+ 
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	
+
+    // ✅ PostgreSQL JDBC driver
+    implementation 'org.postgresql:postgresql:42.7.3'
+	
+	implementation 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'com.sun.mail:jakarta.mail:2.0.1'
+	implementation 'com.sun.activation:jakarta.activation:2.0.1'
+	
+	implementation 'org.modelmapper:modelmapper:3.1.1'
+	
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    
+    // Jakarta Bean Validation API
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    
+
+    
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // or gson/orgjson
+
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1'
+    
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    
+    // Distributed Tracing -Jaeger
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	implementation "io.micrometer:micrometer-tracing-bridge-otel"
+	implementation "io.opentelemetry:opentelemetry-exporter-otlp"
+	
+	 implementation 'org.apache.poi:poi:5.2.5'
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+}
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+ 
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport   
+    check.dependsOn jacocoTestReport
+    // 🔴 MUST
+}
+ 
+ 
+ 
+jacoco {
+    toolVersion = "0.8.11"
+}
+ 
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+ 
+sonarqube {
+    properties {
+        property "sonar.projectKey", "tender-process-service-scm"
+        property "sonar.projectName", "tender-process-service-scm"
+        property "sonar.sources", "src/main/java"
+        property "sonar.tests", "src/test/java"
+        property "sonar.java.binaries", "build/classes/java/main"
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.host.url", "http://103.73.189.202:9000/"
+       property "sonar.login", "sqa_2f9b80f9f92f0a73d0f0abb2c572263198352bc5"
+//		property "sonar.login", "sqa_dac84e48e4f17d1ccae0a58cef4a8bc4ee68f517"
+        property "sonar.gradle.skipCompile", "true" // Avoid deprecated compile behavior
+ 
+        property "sonar.coverage.jacoco.xmlReportPaths",
+                "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+                property "sonar.coverage.includes", "**/service/**"
+                
+ 
+      property "sonar.coverage.exclusions",
+        "**/dto/**," +
+        "**/entity/**," +
+        "**/config/**," +
+        "**/utils/**," +
+        "**/filter/**," +
+        "**/repository/**," +
+        "**/*Application.java," +
+        "**/*Excel*," +
+        "**/*Report*," +
+        "**/*Export*," +
+        "**/*Tracing*," +
+        "**/*Config*"
+ 
+        
+        property "sonar.cpd.exclusions",
+        "**/entity/**,**/dto/**,**/vo/**,**/model/**"
+        
+ 
+    }
+}
+ 
+ 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters"
+}
