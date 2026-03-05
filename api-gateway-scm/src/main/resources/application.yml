@@ -1,0 +1,77 @@
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: login-service-scm
+            uri: lb://login-service-scm
+            predicates:
+              - Path=/login-service-scm/**
+            filters:
+              - StripPrefix=1
+              - AddRequestHeader=X-CF-Forwarded-Url, {forwarded_url}
+              - AddRequestHeader=X-CF-Proxy-Signature, {proxy_signature}
+              - AddRequestHeader=Forwarded, {forwarded}
+
+          - id: reports-service-scm
+            uri: lb://reports-service-scm
+            predicates:
+              - Path=/reports-service-scm/**
+            filters:
+              - StripPrefix=1
+              - AddRequestHeader=X-CF-Forwarded-Url, {forwarded_url}
+              - AddRequestHeader=X-CF-Proxy-Signature, {proxy_signature}
+              - AddRequestHeader=Forwarded, {forwarded}
+
+          - id: masters-service-scm
+            uri: lb://masters-service-scm
+            predicates:
+              - Path=/masters-service-scm/**
+            filters:
+              - StripPrefix=1
+              - AddRequestHeader=X-CF-Forwarded-Url, {forwarded_url}
+              - AddRequestHeader=X-CF-Proxy-Signature, {proxy_signature}
+              - AddRequestHeader=Forwarded, {forwarded}
+
+          - id: procurement-process-service-scm
+            uri: lb://procurement-process-service-scm
+            predicates:
+              - Path=/procurement-process-service-scm/**
+            filters:
+              - StripPrefix=1
+              - AddRequestHeader=X-CF-Forwarded-Url, {forwarded_url}
+              - AddRequestHeader=X-CF-Proxy-Signature, {proxy_signature}
+              - AddRequestHeader=Forwarded, {forwarded}
+
+          - id: request-and-po-service-scm
+            uri: lb://request-and-po-service-scm
+            predicates:
+              - Path=/request-and-po-service-scm/**
+            filters:
+              - StripPrefix=1
+              - AddRequestHeader=X-CF-Forwarded-Url, {forwarded_url}
+              - AddRequestHeader=X-CF-Proxy-Signature, {proxy_signature}
+              - AddRequestHeader=Forwarded, {forwarded}
+
+          - id: stock-movement-analysis-scm
+            uri: lb://stock-movement-analysis-scm
+            predicates:
+              - Path=/stock-movement-analysis-scm/**
+            filters:
+              - StripPrefix=1
+              - AddRequestHeader=X-CF-Forwarded-Url, {forwarded_url}
+              - AddRequestHeader=X-CF-Proxy-Signature, {proxy_signature}
+              - AddRequestHeader=Forwarded, {forwarded}
+
+          - id: tender-process-service-scm
+            uri: lb://tender-process-service-scm
+            predicates:
+              - Path=/tender-process-service-scm/**
+            filters:
+              - StripPrefix=1
+              - AddRequestHeader=X-CF-Forwarded-Url, {forwarded_url}
+              - AddRequestHeader=X-CF-Proxy-Signature, {proxy_signature}
+              - AddRequestHeader=Forwarded, {forwarded}
+
+  codec:
+    max-in-memory-size: 50MB

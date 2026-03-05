@@ -1,0 +1,62 @@
+{"properties": [
+  {
+    "name": "spring.cloud.gateway.discovery.locator.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.cloud.gateway.discovery.locator.enabled'"
+  },
+  {
+    "name": "spring.cloud.gateway.discovery.locator.lower-case-service-id",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.cloud.gateway.discovery.locator.lower-case-service-id'"
+  },
+  {
+    "name": "otel.exporter.otlp.endpoint",
+    "type": "java.lang.String",
+    "description": "A description for 'otel.exporter.otlp.endpoint'"
+  },
+  {
+    "name": "spring.cloud.gateway.httpclient.wiretap",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.cloud.gateway.httpclient.wiretap'"
+  },
+  {
+    "name": "spring.cloud.gateway.httpserver.wiretap",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.cloud.gateway.httpserver.wiretap'"
+  },
+  {
+    "name": "spring.http.multipart.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.http.multipart.enabled'"
+  },
+  {
+    "name": "spring.http.multipart.max-request-size",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.http.multipart.max-request-size'"
+  },
+  {
+    "name": "spring.http.multipart.max-file-size",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.http.multipart.max-file-size'"
+  },
+  {
+    "name": "spring.http.multipart.file-size-threshold",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.http.multipart.file-size-threshold'"
+  },
+  {
+    "name": "spring.cloud.gateway.codec.max-in-memory-size",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.cloud.gateway.codec.max-in-memory-size'"
+  },
+  {
+    "name": "spring.cloud.gateway.mvc.default-filters",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.cloud.gateway.mvc.default-filters'"
+  },
+  {
+    "name": "spring.cloud.gateway.routes",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.cloud.gateway.routes'"
+  }
+]}
