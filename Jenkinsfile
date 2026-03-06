@@ -66,12 +66,13 @@ stages {
     stage('Run Tender Process Service') {
         steps {
             bat 'docker rm -f tender-process-service || exit 0'
-            bat 'docker run -d -p 9073:8080 --name tender-process-service --network scm-network login-service-scm'
+            bat 'docker run -d -p 9073:8080 --name tender-process-service --network scm-network tender-process-service-scm'
         }
     }
 
 }
     
 }
+
 
 
