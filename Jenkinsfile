@@ -15,7 +15,7 @@ stages {
     stage('Run Service Registry') {
         steps {
             bat 'docker rm -f service-registry || exit 0'
-            bat 'docker run -d -p 9070:8080 --name service-registry service-registry-scm'
+            bat 'docker run -d -p 9070:8080 --name service-registry --network scm-network service-registry-scm'
         }
     }
 
@@ -31,7 +31,7 @@ stages {
     stage('Run API Gateway') {
         steps {
             bat 'docker rm -f api-gateway || exit 0'
-            bat 'docker run -d -p 9071:8080 --name api-gateway api-gateway-scm'
+            bat 'docker run -d -p 9071:8080 --name api-gateway --network scm-network api-gateway-scm'
         }
     }
 
@@ -47,11 +47,11 @@ stages {
     stage('Run Login Service') {
         steps {
             bat 'docker rm -f login-service || exit 0'
-            bat 'docker run -d -p 9072:8080 --name login-service login-service-scm'
+            bat 'docker run -d -p 9072:8080 --name login-service --network scm-network login-service-scm'
         }
     }
 
 }
 
-}
 
+}
