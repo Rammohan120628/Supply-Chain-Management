@@ -1,9 +1,12 @@
-FROM eclipse-temurin:17-jdk-jammy
+FROM tomcat:10-jdk17
 
-WORKDIR /app
+# Remove default apps
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-COPY build/libs/*.war app.war
+# Copy WAR file
+COPY build/libs/*.war /usr/local/tomcat/webapps/login-service-scm.war
 
-EXPOSE 9070
+# Expose port
+EXPOSE 9072
 
-ENTRYPOINT ["java","-jar","/app/app.war"]
+CMD ["catalina.sh", "run"]
