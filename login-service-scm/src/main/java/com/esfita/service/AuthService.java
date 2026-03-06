@@ -174,6 +174,7 @@ public class AuthService {
 	    audit.setUserOsDetails(request.getOsDetails());
 	    audit.setCreatedBy(user.getUserPk());
 	    audit.setCreatedDate(LocalDateTime.now());
+	    audit.setEntityFk(user.getEntityFk());
 	    auditRepo.save(audit);
 
 	    // Prepare response DTO

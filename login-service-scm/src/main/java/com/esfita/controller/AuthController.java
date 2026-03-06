@@ -38,10 +38,9 @@ public class AuthController {
 	@PostMapping("/logout")
 	@Observed(name = "logout", contextualName = "logout")
 	public ResponseEntity<ResponseDTO<Void>> logout(@RequestBody LogoutRequestDTO request) {
-	    String token = request.getToken();
-	    String email = jwtUtil.extractUsername(token.substring(7));
+	//    String email = jwtUtil.extractUsername(token.substring(7));
 
-	    authService.logout(email, request.getAuditTrailId());
+	    authService.logout(request.getToken(), request.getAuditTrailId());
 
 	    ResponseDTO<Void> response = ResponseDTO.<Void>builder()
 	        .success(true)
