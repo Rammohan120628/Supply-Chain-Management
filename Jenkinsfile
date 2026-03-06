@@ -15,7 +15,7 @@ pipeline {
         stage('Run Service Registry') {
             steps {
                 bat 'docker rm -f service-registry || exit 0'
-                bat 'docker run -d -p 8761:8761 --name service-registry service-registry-scm'
+                bat 'docker run -d -p 9070:9070 --name service-registry service-registry-scm'
             }
         }
 
@@ -31,7 +31,7 @@ pipeline {
         stage('Run API Gateway') {
             steps {
                 bat 'docker rm -f api-gateway || exit 0'
-                bat 'docker run -d -p 9080:9080 --name api-gateway api-gateway-scm'
+                bat 'docker run -d -p 9071:9071 --name api-gateway api-gateway-scm'
             }
         }
 
@@ -47,9 +47,10 @@ pipeline {
         stage('Run Login Service') {
             steps {
                 bat 'docker rm -f login-service || exit 0'
-                bat 'docker run -d -p 9090:9090 --name login-service login-service-scm'
+                bat 'docker run -d -p 9072:9072 --name login-service login-service-scm'
             }
         }
 
     }
 }
+
