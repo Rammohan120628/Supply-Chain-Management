@@ -1,7 +1,6 @@
 pipeline {
 agent any
 
-```
 stages {
 
     stage('Build Service Registry') {
@@ -53,6 +52,6 @@ stages {
     }
 
 }
-```
 
 }
+
