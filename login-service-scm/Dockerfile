@@ -1,14 +1,9 @@
-# Use OpenJDK
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
-# Set working directory
 WORKDIR /app
 
-# Copy WAR file
 COPY build/libs/*.war app.war
 
-# Expose port
 EXPOSE 9070
 
-# Run application
-ENTRYPOINT ["java","-jar","app.war"]
+ENTRYPOINT ["java","-jar","/app/app.war"]
