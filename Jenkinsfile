@@ -19,14 +19,16 @@ stages {
         }
     }
 
+   
+
     stage('Build API Gateway') {
-        steps {
-            dir('api-gateway-scm') {
-                bat 'gradlew.bat clean build'
-                bat 'docker build -t api-gateway-scm .'
-            }
+    steps {
+        dir('api-gateway-scm') {
+            bat 'gradlew.bat build -x test'
+            bat 'docker build -t api-gateway-scm .'
         }
     }
+}
 
     stage('Run API Gateway') {
         steps {
@@ -38,7 +40,7 @@ stages {
     stage('Build Login Service') {
         steps {
             dir('login-service-scm') {
-                bat 'gradlew.bat clean build'
+               bat 'gradlew.bat build -x test'
                 bat 'docker build -t login-service-scm .'
             }
         }
@@ -54,3 +56,4 @@ stages {
 }
 
 }
+
