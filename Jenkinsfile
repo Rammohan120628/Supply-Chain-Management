@@ -53,7 +53,25 @@ stages {
         }
     }
 
-}
+
+    stage('Build Tender Process Service') {
+        steps {
+            dir('tender-process-service-scm') {
+               bat 'gradlew.bat build -x test'
+               bat 'docker build -t tender-process-service-scm .'
+            }
+        }
+    }
+
+    stage('Run Tender Process Service') {
+        steps {
+            bat 'docker rm -f tender-process-service || exit 0'
+            bat 'docker run -d -p 9073:8080 --name tender-process-service --network scm-network login-service-scm'
+        }
+    }
 
 }
+    
+}
+
 
