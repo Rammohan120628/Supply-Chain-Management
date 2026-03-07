@@ -132,7 +132,7 @@ public class TenderProcessService {
 					ComboBoxDTO dto = new ComboBoxDTO();
 					dto.setPk(hib.getLocationPk());
 					dto.setLocationId(hib.getLocationId());
-					dto.setLocationName(hib.getLocationName());
+			//		dto.setLocationName(hib.getLocationName());
 					comboList.add(dto);
 				}
 			}
