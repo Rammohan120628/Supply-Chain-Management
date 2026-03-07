@@ -115,40 +115,50 @@ pipeline {
             }
         }
 
-        stage('Deploy Frontend') {
+        stage('Deploy React Frontend') {
             when {
                 expression { env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true" }
             }
             steps {
                 dir('scm-frontend') {
-
-                    bat 'npm ci'
+                    // Install dependencies and build React app
+                    bat 'npm install'
                     bat 'npm run build'
-
+                    
+                    // Create Dockerfile for React if it doesn't exist
+                    bat '''
+                    if not exist Dockerfile (
+                        echo FROM nginx:alpine > Dockerfile
+                        echo COPY build /usr/share/nginx/html >> Dockerfile
+                        echo EXPOSE 80 >> Dockerfile
+                        echo CMD ["nginx", "-g", "daemon off;"] >> Dockerfile
+                    )
+                    '''
+                    
+                    // Build Docker image
                     bat 'docker build -t scm-frontend .'
                 }
 
+                // Stop and remove existing container
                 bat 'docker stop scm-frontend || exit 0'
                 bat 'docker rm scm-frontend || exit 0'
 
+                // Run React frontend container
                 bat 'docker run -d -p 3000:80 --name scm-frontend --network %NETWORK% scm-frontend'
             }
         }
 
-        stage('No Changes') {
-            when {
-                expression {
-                    env.REGISTRY_CHANGED == "false" &&
-                    env.GATEWAY_CHANGED == "false" &&
-                    env.LOGIN_CHANGED == "false" &&
-                    env.TENDER_CHANGED == "false" &&
-                    env.FRONTEND_CHANGED == "false"
-                }
-            }
-            steps {
-                echo "No changes detected in microservices or frontend."
-            }
+    }
+    
+    post {
+        success {
+            echo 'Deployment completed successfully!'
+            echo 'Frontend is available at http://localhost:3000'
+            echo 'Service Registry: http://localhost:8761'
+            echo 'API Gateway: http://localhost:9191'
         }
-
+        failure {
+            echo 'Deployment failed!'
+        }
     }
 }
