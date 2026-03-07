@@ -67,19 +67,19 @@ pipeline {
         }
 
         stage('Deploy Tender Process Service') {
-            when {
-                expression { env.TENDER_CHANGED == "true" }
-            }
-            steps {
-                dir('tender-process-service-scm') {
-                    bat 'gradlew.bat build -x test'
-                    bat 'docker build -t tender-process-service-scm .'
-                }
+    steps {
 
-                bat 'docker rm -f tender-process-service || exit 0'
-                bat 'docker run -d -p 9073:8080 --name tender-process-service --network scm-network tender-process-service-scm'
-            }
+        dir('tender-process-service-scm') {
+            bat 'gradlew.bat build -x test'
+            bat 'docker build -t tender-process-service-scm .'
         }
+
+        bat 'docker stop tender-process-service || exit 0'
+        bat 'docker rm tender-process-service || exit 0'
+
+        bat 'docker run -d -p 9073:8080 --name tender-process-service --network scm-network tender-process-service-scm'
+    }
+}
 
         stage('No Changes') {
             when {
