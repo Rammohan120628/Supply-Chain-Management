@@ -122,7 +122,9 @@ pipeline {
         // REACT FRONTEND
         stage('Deploy Frontend') {
     when {
-        expression { env.FRONTEND_CHANGED == "true" }
+        expression { 
+            env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true"
+        }
     }
     steps {
         dir('scm-frontend') {
