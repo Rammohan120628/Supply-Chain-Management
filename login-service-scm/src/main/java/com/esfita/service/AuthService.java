@@ -142,10 +142,10 @@ public class AuthService {
 	                .build();
 	    }
 	    
-//		if (!AppUtils.decrypt(user.getPassword()).trim().equals(request.getPassword().trim())) {
-//		return ResponseDTO.<LoginResponseDTO>builder().success(false).message("Invalid credentials").data(null)
-//				.build();
-//	}
+		if (!AppUtils.decrypt(user.getPassword()).trim().equals(request.getPassword().trim())) {
+		return ResponseDTO.<LoginResponseDTO>builder().success(false).message("Invalid credentials").data(null)
+				.build();
+	}
 
 	    // Invalidate old session
 	    user.setSessionToken(null);
