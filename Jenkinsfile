@@ -121,24 +121,24 @@ pipeline {
 
         // REACT FRONTEND
         stage('Deploy Frontend') {
-            when {
-                expression { env.FRONTEND_CHANGED == "true" }
-            }
-            steps {
-                dir('frontend-scm') {
+    when {
+        expression { env.FRONTEND_CHANGED == "true" }
+    }
+    steps {
+        dir('scm-frontend') {
 
-                    bat 'npm install'
-                    bat 'npm run build'
+            bat 'npm install'
+            bat 'npm run build'
 
-                    bat 'docker build -t scm-frontend .'
-                }
-
-                bat 'docker stop scm-frontend || exit 0'
-                bat 'docker rm scm-frontend || exit 0'
-
-                bat 'docker run -d -p 3000:80 --name scm-frontend --network %NETWORK% scm-frontend'
-            }
+            bat 'docker build -t scm-frontend .'
         }
+
+        bat 'docker stop scm-frontend || exit 0'
+        bat 'docker rm scm-frontend || exit 0'
+
+        bat 'docker run -d -p 3000:80 --name scm-frontend --network scm-network scm-frontend'
+    }
+}
 
         stage('No Changes') {
             when {
