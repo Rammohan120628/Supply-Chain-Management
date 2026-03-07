@@ -476,7 +476,7 @@
 //             </div>
 //           </div>
 //         )}
-//       </header>
+
 
 //       {/* Mobile Sidebar Drawer */}
 //       <Drawer open={isMobileSidebarOpen} onClose={handleClose} className="w-[130px]">
