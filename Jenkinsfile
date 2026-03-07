@@ -47,7 +47,6 @@ pipeline {
             }
         }
 
-        // SERVICE REGISTRY
         stage('Deploy Service Registry') {
             when {
                 expression { env.REGISTRY_CHANGED == "true" }
@@ -65,7 +64,6 @@ pipeline {
             }
         }
 
-        // API GATEWAY
         stage('Deploy API Gateway') {
             when {
                 expression { env.GATEWAY_CHANGED == "true" }
@@ -83,7 +81,6 @@ pipeline {
             }
         }
 
-        // LOGIN SERVICE
         stage('Deploy Login Service') {
             when {
                 expression { env.LOGIN_CHANGED == "true" }
@@ -101,7 +98,6 @@ pipeline {
             }
         }
 
-        // TENDER SERVICE
         stage('Deploy Tender Process Service') {
             when {
                 expression { env.TENDER_CHANGED == "true" }
@@ -119,32 +115,25 @@ pipeline {
             }
         }
 
-        // REACT FRONTEND
         stage('Deploy Frontend') {
-    when {
-        expression { 
-            env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true"
+            when {
+                expression { env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true" }
+            }
+            steps {
+                dir('scm-frontend') {
+
+                    bat 'npm ci'
+                    bat 'npm run build'
+
+                    bat 'docker build -t scm-frontend .'
+                }
+
+                bat 'docker stop scm-frontend || exit 0'
+                bat 'docker rm scm-frontend || exit 0'
+
+                bat 'docker run -d -p 3000:80 --name scm-frontend --network %NETWORK% scm-frontend'
+            }
         }
-    }
-    stage('Deploy Frontend') {
-    when {
-        expression { env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true" }
-    }
-    steps {
-        dir('scm-frontend') {
-
-            bat 'npm ci'
-            bat 'npm run build'
-
-            bat 'docker build -t scm-frontend .'
-        }
-
-        bat 'docker stop scm-frontend || exit 0'
-        bat 'docker rm scm-frontend || exit 0'
-
-        bat 'docker run -d -p 3000:80 --name scm-frontend --network scm-network scm-frontend'
-    }
-}
 
         stage('No Changes') {
             when {
