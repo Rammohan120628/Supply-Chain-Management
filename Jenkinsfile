@@ -42,7 +42,7 @@ pipeline {
                     env.GATEWAY_CHANGED  = changes.contains("api-gateway-scm") ? "true" : "false"
                     env.LOGIN_CHANGED    = changes.contains("login-service-scm") ? "true" : "false"
                     env.TENDER_CHANGED   = changes.contains("tender-process-service-scm") ? "true" : "false"
-                    env.FRONTEND_CHANGED = changes.contains("frontend-scm") ? "true" : "false"
+                    env.FRONTEND_CHANGED = changes.contains("scm-frontend") ? "true" : "false"
                 }
             }
         }
