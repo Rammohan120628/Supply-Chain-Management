@@ -5,11 +5,26 @@ pipeline {
         pollSCM('* * * * *')
     }
 
+    environment {
+        NETWORK = "scm-network"
+    }
+
     stages {
 
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Create Docker Network') {
+            steps {
+                bat '''
+                docker network inspect %NETWORK% >nul 2>&1
+                if %ERRORLEVEL% NEQ 0 (
+                    docker network create %NETWORK%
+                )
+                '''
             }
         }
 
@@ -27,6 +42,7 @@ pipeline {
                     env.GATEWAY_CHANGED  = changes.contains("api-gateway-scm") ? "true" : "false"
                     env.LOGIN_CHANGED    = changes.contains("login-service-scm") ? "true" : "false"
                     env.TENDER_CHANGED   = changes.contains("tender-process-service-scm") ? "true" : "false"
+                    env.FRONTEND_CHANGED = changes.contains("frontend-scm") ? "true" : "false"
                 }
             }
         }
@@ -45,29 +61,7 @@ pipeline {
                 bat 'docker stop service-registry || exit 0'
                 bat 'docker rm service-registry || exit 0'
 
-                bat 'docker run -d -p 8761:8761 --name service-registry --network scm-network service-registry-scm'
-            }
-        }
-
-        // ENSURE SERVICE REGISTRY FOR DEPENDENT SERVICES
-        stage('Ensure Service Registry Running') {
-            when {
-                expression {
-                    env.GATEWAY_CHANGED == "true" ||
-                    env.LOGIN_CHANGED == "true" ||
-                    env.TENDER_CHANGED == "true"
-                }
-            }
-            steps {
-                bat '''
-                docker ps -q -f name=service-registry >nul
-                if %ERRORLEVEL% NEQ 0 (
-                    echo Starting Service Registry...
-                    docker run -d -p 8761:8761 --name service-registry --network scm-network service-registry-scm
-                ) else (
-                    echo Service Registry already running
-                )
-                '''
+                bat 'docker run -d -p 8761:8761 --name service-registry --network %NETWORK% service-registry-scm'
             }
         }
 
@@ -85,28 +79,7 @@ pipeline {
                 bat 'docker stop api-gateway || exit 0'
                 bat 'docker rm api-gateway || exit 0'
 
-                bat 'docker run -d -p 9191:9191 --name api-gateway --network scm-network api-gateway-scm'
-            }
-        }
-
-        // ENSURE API GATEWAY
-        stage('Ensure API Gateway Running') {
-            when {
-                expression {
-                    env.LOGIN_CHANGED == "true" ||
-                    env.TENDER_CHANGED == "true"
-                }
-            }
-            steps {
-                bat '''
-                docker ps -q -f name=api-gateway >nul
-                if %ERRORLEVEL% NEQ 0 (
-                    echo Starting API Gateway...
-                    docker run -d -p 9191:9191 --name api-gateway --network scm-network api-gateway-scm
-                ) else (
-                    echo API Gateway already running
-                )
-                '''
+                bat 'docker run -d -p 9191:9191 --name api-gateway --network %NETWORK% api-gateway-scm'
             }
         }
 
@@ -124,11 +97,11 @@ pipeline {
                 bat 'docker stop login-service || exit 0'
                 bat 'docker rm login-service || exit 0'
 
-                bat 'docker run -d -p 9072:8080 --name login-service --network scm-network login-service-scm'
+                bat 'docker run -d -p 9072:8080 --name login-service --network %NETWORK% login-service-scm'
             }
         }
 
-        // TENDER PROCESS
+        // TENDER SERVICE
         stage('Deploy Tender Process Service') {
             when {
                 expression { env.TENDER_CHANGED == "true" }
@@ -142,7 +115,28 @@ pipeline {
                 bat 'docker stop tender-process-service || exit 0'
                 bat 'docker rm tender-process-service || exit 0'
 
-                bat 'docker run -d -p 9073:8080 --name tender-process-service --network scm-network tender-process-service-scm'
+                bat 'docker run -d -p 9073:8080 --name tender-process-service --network %NETWORK% tender-process-service-scm'
+            }
+        }
+
+        // REACT FRONTEND
+        stage('Deploy Frontend') {
+            when {
+                expression { env.FRONTEND_CHANGED == "true" }
+            }
+            steps {
+                dir('frontend-scm') {
+
+                    bat 'npm install'
+                    bat 'npm run build'
+
+                    bat 'docker build -t scm-frontend .'
+                }
+
+                bat 'docker stop scm-frontend || exit 0'
+                bat 'docker rm scm-frontend || exit 0'
+
+                bat 'docker run -d -p 3000:80 --name scm-frontend --network %NETWORK% scm-frontend'
             }
         }
 
@@ -152,12 +146,14 @@ pipeline {
                     env.REGISTRY_CHANGED == "false" &&
                     env.GATEWAY_CHANGED == "false" &&
                     env.LOGIN_CHANGED == "false" &&
-                    env.TENDER_CHANGED == "false"
+                    env.TENDER_CHANGED == "false" &&
+                    env.FRONTEND_CHANGED == "false"
                 }
             }
             steps {
-                echo "No microservice changes detected."
+                echo "No changes detected in microservices or frontend."
             }
         }
+
     }
 }
