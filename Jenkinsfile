@@ -126,10 +126,14 @@ pipeline {
             env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true"
         }
     }
+    stage('Deploy Frontend') {
+    when {
+        expression { env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true" }
+    }
     steps {
         dir('scm-frontend') {
 
-            bat 'npm install'
+            bat 'npm ci'
             bat 'npm run build'
 
             bat 'docker build -t scm-frontend .'
