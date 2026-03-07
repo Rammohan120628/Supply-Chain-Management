@@ -117,37 +117,54 @@ pipeline {
 
         stage('Deploy React Frontend') {
             when {
-                expression { env.FRONTEND_CHANGED == "true" || env.TENDER_CHANGED == "true" }
+                expression { env.TENDER_CHANGED == "true" }
             }
             steps {
                 dir('scm-frontend') {
-                    // Install dependencies and build React app
-                    bat 'npm install'
-                    bat 'npm run build'
+                    script {
+                        // Check if package.json exists
+                        def packageJsonExists = fileExists('package.json')
+                        if (!packageJsonExists) {
+                            error "package.json not found in scm-frontend directory!"
+                        }
+                    }
                     
-                    // Create Dockerfile for React if it doesn't exist
+                    // Create optimized Dockerfile for React
                     bat '''
-                    if not exist Dockerfile (
-                        echo FROM nginx:alpine > Dockerfile
-                        echo COPY build /usr/share/nginx/html >> Dockerfile
-                        echo EXPOSE 80 >> Dockerfile
-                        echo CMD ["nginx", "-g", "daemon off;"] >> Dockerfile
-                    )
+                    @echo off
+                    echo Creating Dockerfile for React...
+                    
+                    (
+                        echo FROM node:18-alpine AS build
+                        echo WORKDIR /app
+                        echo COPY package*.json ./
+                        echo RUN npm ci
+                        echo COPY . .
+                        echo RUN npm run build
+                        echo.
+                        echo FROM nginx:alpine
+                        echo COPY --from=build /app/build /usr/share/nginx/html
+                        echo EXPOSE 80
+                        echo CMD ["nginx", "-g", "daemon off;"]
+                    ) > Dockerfile
+                    
+                    echo Dockerfile created successfully.
                     '''
                     
                     // Build Docker image
-                    bat 'docker build -t scm-frontend .'
+                    bat 'docker build --no-cache -t scm-frontend .'
                 }
 
                 // Stop and remove existing container
-                bat 'docker stop scm-frontend || exit 0'
-                bat 'docker rm scm-frontend || exit 0'
+                bat '''
+                docker stop scm-frontend 2>nul || exit 0
+                docker rm scm-frontend 2>nul || exit 0
+                '''
 
                 // Run React frontend container
                 bat 'docker run -d -p 3000:80 --name scm-frontend --network %NETWORK% scm-frontend'
             }
         }
-
     }
     
     post {
@@ -156,9 +173,15 @@ pipeline {
             echo 'Frontend is available at http://localhost:3000'
             echo 'Service Registry: http://localhost:8761'
             echo 'API Gateway: http://localhost:9191'
+            echo 'Login Service: http://localhost:9072'
+            echo 'Tender Service: http://localhost:9073'
         }
         failure {
             echo 'Deployment failed!'
+            script {
+                // Print last logs from failed build
+                bat 'docker logs scm-frontend 2>&1 || exit 0'
+            }
         }
     }
 }
