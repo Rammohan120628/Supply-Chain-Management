@@ -145,11 +145,11 @@ stage('Run Frontend Container') {
                 // Run the new container
                 bat '''
                     docker run -d ^
-                        --name scm-frontend ^
-                        --network scm-network ^
-                        -p 3000:3000 ^
-                        --restart unless-stopped ^
-                        scm-frontend:latest
+                    --name scm-frontend ^
+                    --network scm-network ^
+                    -p 3000:80 ^
+                    --restart unless-stopped ^
+                    scm-frontend:latest
                 '''
                 
                 // Verify container is running
