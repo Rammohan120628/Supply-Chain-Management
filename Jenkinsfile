@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
     triggers {
         pollSCM('* * * * *')
     }
@@ -53,13 +58,14 @@ pipeline {
                 expression { env.REGISTRY_CHANGED == "true" }
             }
             steps {
+
                 dir('service-registry-scm') {
                     bat 'gradlew.bat build -x test'
                     bat 'docker build -t service-registry-scm .'
                 }
 
-                bat 'docker stop service-registry || exit 0'
-                bat 'docker rm service-registry || exit 0'
+                bat 'docker stop service-registry 2>nul'
+                bat 'docker rm service-registry 2>nul'
 
                 bat 'docker run -d -p 8761:8761 --name service-registry --network %NETWORK% service-registry-scm'
             }
@@ -71,13 +77,14 @@ pipeline {
                 expression { env.GATEWAY_CHANGED == "true" }
             }
             steps {
+
                 dir('api-gateway-scm') {
                     bat 'gradlew.bat build -x test'
                     bat 'docker build -t api-gateway-scm .'
                 }
 
-                bat 'docker stop api-gateway || exit 0'
-                bat 'docker rm api-gateway || exit 0'
+                bat 'docker stop api-gateway 2>nul'
+                bat 'docker rm api-gateway 2>nul'
 
                 bat 'docker run -d -p 9191:9191 --name api-gateway --network %NETWORK% api-gateway-scm'
             }
@@ -89,55 +96,56 @@ pipeline {
                 expression { env.LOGIN_CHANGED == "true" }
             }
             steps {
+
                 dir('login-service-scm') {
                     bat 'gradlew.bat build -x test'
                     bat 'docker build -t login-service-scm .'
                 }
 
-                bat 'docker stop login-service || exit 0'
-                bat 'docker rm login-service || exit 0'
+                bat 'docker stop login-service 2>nul'
+                bat 'docker rm login-service 2>nul'
 
                 bat 'docker run -d -p 9072:8080 --name login-service --network %NETWORK% login-service-scm'
             }
         }
 
-        // TENDER SERVICE
+        // TENDER PROCESS SERVICE
         stage('Deploy Tender Process Service') {
             when {
                 expression { env.TENDER_CHANGED == "true" }
             }
             steps {
+
                 dir('tender-process-service-scm') {
                     bat 'gradlew.bat build -x test'
                     bat 'docker build -t tender-process-service-scm .'
                 }
 
-                bat 'docker stop tender-process-service || exit 0'
-                bat 'docker rm tender-process-service || exit 0'
+                bat 'docker stop tender-process-service 2>nul'
+                bat 'docker rm tender-process-service 2>nul'
 
                 bat 'docker run -d -p 9073:8080 --name tender-process-service --network %NETWORK% tender-process-service-scm'
             }
         }
 
         // FRONTEND (React)
-stage('Deploy Frontend') {
-    when {
-        expression { env.FRONTEND_CHANGED == "true" }
-    }
-    steps {
-        dir('scm-frontend') {
+        stage('Deploy Frontend') {
+            when {
+                expression { env.FRONTEND_CHANGED == "true" }
+            }
+            steps {
 
-            bat 'docker build -t scm-frontend .'
+                dir('scm-frontend') {
+                    bat 'docker build -t scm-frontend .'
+                }
+
+                bat 'docker stop scm-frontend 2>nul'
+                bat 'docker rm scm-frontend 2>nul'
+
+                bat 'docker run -d -p 3000:3000 --name scm-frontend --network %NETWORK% scm-frontend'
+            }
         }
 
-        bat 'docker stop scm-frontend || exit 0'
-        bat 'docker rm scm-frontend || exit 0'
-
-        bat 'docker run -d -p 3000:3000 --name scm-frontend --network %NETWORK% scm-frontend'
-    }
-}
-
-        
         stage('No Changes') {
             when {
                 expression {
