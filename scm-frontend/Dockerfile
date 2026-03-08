@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package.json and package-lock.json to leverage build cache
 COPY package*.json ./
 
-# Install application dependencies
-RUN npm install
+# Install application dependencies with legacy peer deps
+RUN npm install --legacy-peer-deps
 
 # Copy the rest of the application code to the container
 COPY . .
