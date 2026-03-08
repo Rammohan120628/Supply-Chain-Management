@@ -1,6 +1,6 @@
-# Your Dockerfile is correct - keep it as is
+# Your Dockerfile is correct - keep it as i
 FROM node:20-alpine
-
+# its worked correctly
 WORKDIR /app
 
 COPY package*.json ./
