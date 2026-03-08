@@ -129,22 +129,52 @@ pipeline {
         }
 
         // FRONTEND (React)
-        stage('Deploy Frontend') {
-            when {
-                expression { env.FRONTEND_CHANGED == "true" }
-            }
-            steps {
-
-                dir('scm-frontend') {
-                    bat 'docker build -t scm-frontend .'
-                }
-
-                bat 'docker stop scm-frontend 2>nul'
-                bat 'docker rm scm-frontend 2>nul'
-
-                bat 'docker run -d -p 3000:3000 --name scm-frontend --network %NETWORK% scm-frontend'
+stage('Run Frontend Container') {
+    steps {
+        dir('scm-frontend') {
+            script {
+                // Stop and remove existing container if it exists
+                bat '''
+                    docker stop scm-frontend || true
+                    docker rm scm-frontend || true
+                '''
+                
+                // Run the new container
+                bat '''
+                    docker run -d \\
+                        --name scm-frontend \\
+                        --network scm-network \\
+                        -p 3000:3000 \\
+                        --restart unless-stopped \\
+                        scm-frontend:latest
+                '''
+                
+                // Verify container is running
+                bat 'docker ps | findstr scm-frontend'
             }
         }
+    }
+}
+
+stage('Verify Frontend Deployment') {
+    steps {
+        script {
+            // Wait for container to be ready
+            sleep time: 10, unit: 'SECONDS'
+            
+            // Check container logs
+            bat 'docker logs scm-frontend --tail 50'
+            
+            // Test if application is responding
+            bat '''
+                curl -f http://localhost:3000 || (
+                    echo "Frontend not responding yet" && 
+                    exit 1
+                )
+            '''
+        }
+    }
+}
 
         stage('No Changes') {
             when {
