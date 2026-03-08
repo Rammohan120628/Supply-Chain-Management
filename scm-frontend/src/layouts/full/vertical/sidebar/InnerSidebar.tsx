@@ -98,8 +98,8 @@
 // export default InnerSidebar;
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import Sidebaritems from "./Sidebaritem";
-import FullLogo from '../../shared/logo/FullLogo';
+import SidebarItems from "./SidebarItem";
+import FullLogo from "../../shared/logo/FullLogo";
 
 const InnerSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -107,20 +107,15 @@ const InnerSidebar = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Determine if sidebar should be expanded based on collapsed state and hover
   const isExpanded = !isCollapsed || isHovered;
-  
-  // Use useCallback to memoize the toggle function
+
   const toggleSidebarCollapse = useCallback(() => {
-    setIsCollapsed(prev => !prev);
-    // Reset hover state when toggling
+    setIsCollapsed((prev) => !prev);
     setIsHovered(false);
   }, []);
 
-  // Handle mouse enter - expand with delay
   const handleMouseEnter = useCallback(() => {
     if (isCollapsed) {
-      // Clear any pending timeout to hide
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
       }
@@ -128,17 +123,14 @@ const InnerSidebar = () => {
     }
   }, [isCollapsed]);
 
-  // Handle mouse leave - collapse with delay
   const handleMouseLeave = useCallback(() => {
     if (isCollapsed) {
-      // Add small delay before collapsing to prevent flickering
       hoverTimeoutRef.current = setTimeout(() => {
         setIsHovered(false);
-      }, 300); // 300ms delay
+      }, 300);
     }
   }, [isCollapsed]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (hoverTimeoutRef.current) {
@@ -147,42 +139,46 @@ const InnerSidebar = () => {
     };
   }, []);
 
-  // Expose the toggle function to parent components via custom event
   useEffect(() => {
     const handleToggleFromHeader = () => {
       toggleSidebarCollapse();
     };
 
-    window.addEventListener('toggle-sidebar', handleToggleFromHeader);
-    
+    window.addEventListener("toggle-sidebar", handleToggleFromHeader);
+
     return () => {
-      window.removeEventListener('toggle-sidebar', handleToggleFromHeader);
+      window.removeEventListener("toggle-sidebar", handleToggleFromHeader);
     };
   }, [toggleSidebarCollapse]);
 
   return (
-    <div 
+    <div
       ref={sidebarRef}
       className={`fixed left-0 top-0 h-screen bg-white text-gray-900 flex flex-col shadow-xl border-r border-gray-200 transition-all duration-300 ease-in-out ${
-        isExpanded ? 'w-[258px]' : 'w-[80px]'
+        isExpanded ? "w-[258px]" : "w-[80px]"
       }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
-        // Add a slight shadow when expanded from hover
-        boxShadow: isHovered ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02)' : undefined
+        boxShadow: isHovered
+          ? "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02)"
+          : undefined,
       }}
     >
-      {/* Logo Section - Always at the top */}
-      <div className={`flex-shrink-0 ${isExpanded ? 'px-3 py-3' : 'px-2 py-3'} border-b border-gray-200`}>
+      {/* Logo Section */}
+      <div
+        className={`flex-shrink-0 ${
+          isExpanded ? "px-3 py-3" : "px-2 py-3"
+        } border-b border-gray-200`}
+      >
         <FullLogo />
       </div>
-      
-      {/* Sidebar Items - Takes remaining space */}
+
+      {/* Sidebar Items */}
       <div className="flex-1 overflow-hidden">
-        <Sidebaritems 
-          isCollapsed={!isExpanded} 
-          onToggleCollapse={toggleSidebarCollapse} 
+        <SidebarItems
+          isCollapsed={!isExpanded}
+          onToggleCollapse={toggleSidebarCollapse}
         />
       </div>
     </div>
