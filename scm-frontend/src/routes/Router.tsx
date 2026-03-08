@@ -149,9 +149,7 @@ import OtherCashDisbursement from 'src/views/CASH/OtherCashDis';
 import PhysicalStock from 'src/views/STOCK/PysicalStock';
 import ProjectSettingsConfiguration from 'src/views/CommonMaster/CommonAdmin';
 import CWHLoadingSheet from 'src/views/OverallReport/OverallReport//Reports/DeliveryPlanandPO/CWHloadingSheet';
-import UserMaster from 'src/views/UserMaster/usermaster';
-import ScreenRights from 'src/views/UserMaster/ScreenRights';
-import UserLog from 'src/views/UserMaster/UserLog';
+
 
 /* ***Layouts**** */
 const FullLayout = Loadable(lazy(() => import('../layouts/full/FullLayout')));
@@ -779,30 +777,7 @@ const AppRoutes = () => {
             </RequirePermission>
           }
         />
-        <Route
-          path="User/UserMaster"
-          element={
-            <RequirePermission permissionKey="renderCommonMaster">
-              <UserMaster />
-            </RequirePermission>
-          }
-        />
-        <Route
-          path="User/ScreenRights"
-          element={
-            <RequirePermission permissionKey="renderCommonMaster">
-              <ScreenRights />
-            </RequirePermission>
-          }
-        />
-        <Route
-          path="User/UserLog"
-          element={
-            <RequirePermission permissionKey="renderCommonMaster">
-              <UserLog />
-            </RequirePermission>
-          }
-        />
+       
         <Route
           path="overAllReport"
           element={
