@@ -36,6 +36,7 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
+
                     def changes = bat(
                         script: "git diff --name-only HEAD~1 HEAD",
                         returnStdout: true
@@ -48,11 +49,23 @@ pipeline {
                     env.LOGIN_CHANGED    = changes.contains("login-service-scm") ? "true" : "false"
                     env.TENDER_CHANGED   = changes.contains("tender-process-service-scm") ? "true" : "false"
                     env.FRONTEND_CHANGED = changes.contains("scm-frontend") ? "true" : "false"
+
+                    // Dependency logic
+                    if (env.GATEWAY_CHANGED == "true" || env.LOGIN_CHANGED == "true" || env.TENDER_CHANGED == "true") {
+                        env.REGISTRY_CHANGED = "true"
+                    }
+
+                    if (env.LOGIN_CHANGED == "true" || env.TENDER_CHANGED == "true") {
+                        env.GATEWAY_CHANGED = "true"
+                    }
+
                 }
             }
         }
 
+        // ===============================
         // SERVICE REGISTRY
+        // ===============================
         stage('Deploy Service Registry') {
             when {
                 expression { env.REGISTRY_CHANGED == "true" }
@@ -67,11 +80,22 @@ pipeline {
                 bat 'docker stop service-registry 2>nul'
                 bat 'docker rm service-registry 2>nul'
 
-                bat 'docker run -d -p 8761:8761 --name service-registry --network %NETWORK% service-registry-scm'
+                bat '''
+                docker run -d ^
+                --name service-registry ^
+                --network %NETWORK% ^
+                -p 8761:8761 ^
+                service-registry-scm
+                '''
+
+                // wait for Eureka
+                sleep time: 20, unit: 'SECONDS'
             }
         }
 
+        // ===============================
         // API GATEWAY
+        // ===============================
         stage('Deploy API Gateway') {
             when {
                 expression { env.GATEWAY_CHANGED == "true" }
@@ -86,11 +110,21 @@ pipeline {
                 bat 'docker stop api-gateway 2>nul'
                 bat 'docker rm api-gateway 2>nul'
 
-                bat 'docker run -d -p 9191:9191 --name api-gateway --network %NETWORK% api-gateway-scm'
+                bat '''
+                docker run -d ^
+                --name api-gateway ^
+                --network %NETWORK% ^
+                -p 9191:9191 ^
+                api-gateway-scm
+                '''
+
+                sleep time: 15, unit: 'SECONDS'
             }
         }
 
+        // ===============================
         // LOGIN SERVICE
+        // ===============================
         stage('Deploy Login Service') {
             when {
                 expression { env.LOGIN_CHANGED == "true" }
@@ -105,11 +139,19 @@ pipeline {
                 bat 'docker stop login-service 2>nul'
                 bat 'docker rm login-service 2>nul'
 
-                bat 'docker run -d -p 9072:8080 --name login-service --network %NETWORK% login-service-scm'
+                bat '''
+                docker run -d ^
+                --name login-service ^
+                --network %NETWORK% ^
+                -p 9072:8080 ^
+                login-service-scm
+                '''
             }
         }
 
+        // ===============================
         // TENDER PROCESS SERVICE
+        // ===============================
         stage('Deploy Tender Process Service') {
             when {
                 expression { env.TENDER_CHANGED == "true" }
@@ -124,66 +166,74 @@ pipeline {
                 bat 'docker stop tender-process-service 2>nul'
                 bat 'docker rm tender-process-service 2>nul'
 
-                bat 'docker run -d -p 9073:8080 --name tender-process-service --network %NETWORK% tender-process-service-scm'
+                bat '''
+                docker run -d ^
+                --name tender-process-service ^
+                --network %NETWORK% ^
+                -p 9073:8080 ^
+                tender-process-service-scm
+                '''
             }
         }
 
-        // FRONTEND (React)
-stage('Run Frontend Container') {
-    steps {
-        dir('scm-frontend') {
-            script {
-                // Build the image first
-                bat 'docker build -t scm-frontend .'
-                
-                // Stop and remove existing container if it exists (Windows syntax)
-                bat '''
+        // ===============================
+        // FRONTEND
+        // ===============================
+        stage('Deploy Frontend') {
+            when {
+                expression { env.FRONTEND_CHANGED == "true" }
+            }
+            steps {
+
+                dir('scm-frontend') {
+
+                    bat 'docker build -t scm-frontend .'
+
+                    bat '''
                     docker stop scm-frontend 2>nul || ver>nul
                     docker rm scm-frontend 2>nul || ver>nul
-                '''
-                
-                // Run the new container
-                bat '''
+                    '''
+
+                    bat '''
                     docker run -d ^
                     --name scm-frontend ^
-                    --network scm-network ^
+                    --network %NETWORK% ^
                     -p 3000:80 ^
                     --restart unless-stopped ^
-                    scm-frontend:latest
-                '''
-                
-                // Verify container is running
-                bat 'docker ps | findstr scm-frontend || echo Container not found'
+                    scm-frontend
+                    '''
+                }
             }
         }
-    }
-}
 
-stage('Verify Frontend Deployment') {
-    steps {
-        script {
-            // Wait for container to be ready
-            sleep time: 15, unit: 'SECONDS'
-            
-            // Check container logs (Windows syntax)
-            bat '''
-                docker logs scm-frontend --tail 50 2>nul || echo No logs available yet
-            '''
-            
-            // Test if application is responding
-            bat '''
-                curl -f http://localhost:3000 >nul 2>&1
-                if %ERRORLEVEL% NEQ 0 (
-                    echo Frontend not responding yet
-                    exit /b 1
-                ) else (
-                    echo Frontend is responding!
-                )
-            '''
+        // ===============================
+        // VERIFY FRONTEND
+        // ===============================
+        stage('Verify Frontend Deployment') {
+            when {
+                expression { env.FRONTEND_CHANGED == "true" }
+            }
+            steps {
+                script {
+
+                    sleep time: 15, unit: 'SECONDS'
+
+                    bat '''
+                    curl -f http://localhost:3000 >nul 2>&1
+                    if %ERRORLEVEL% NEQ 0 (
+                        echo Frontend not responding yet
+                        exit /b 1
+                    ) else (
+                        echo Frontend is responding!
+                    )
+                    '''
+                }
+            }
         }
-    }
-}
 
+        // ===============================
+        // NO CHANGES
+        // ===============================
         stage('No Changes') {
             when {
                 expression {
@@ -195,7 +245,7 @@ stage('Verify Frontend Deployment') {
                 }
             }
             steps {
-                echo "No changes detected in microservices or frontend."
+                echo "No changes detected in services."
             }
         }
 
