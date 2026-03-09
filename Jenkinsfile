@@ -84,7 +84,7 @@ pipeline {
                 docker run -d ^
                 --name service-registry ^
                 --network %NETWORK% ^
-                -p 9070:9070 ^
+                -p 9070:8080 ^
                 service-registry-scm
                 '''
 
@@ -114,7 +114,7 @@ pipeline {
                 docker run -d ^
                 --name api-gateway ^
                 --network %NETWORK% ^
-                -p 9191:9191 ^
+                -p 9071:8080 ^
                 api-gateway-scm
                 '''
 
